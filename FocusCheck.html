@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>FocusCheck – מערכת מלאה</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+  <style>
+    body { background: #e6fafd; font-family: 'Varela Round', Arial, sans-serif; margin: 0; color: #232323; direction: rtl; min-height: 100vh;}
+    .main-home { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+    .main-card { max-width: 500px; margin: 50px auto 38px auto; background: #fff; border-radius: 32px; box-shadow: 0 8px 32px rgba(60,180,190,0.13); padding: 50px 42px 40px 42px; min-height: 500px; display: flex; flex-direction: column; align-items: center; position: relative; animation: fadeIn 0.7s;}
+    @keyframes fadeIn { from { opacity:0; transform: translateY(50px);} to   { opacity:1; transform: none;} }
+    .main-roles { display: flex; gap: 38px; justify-content: center; flex-wrap: wrap; margin-top: 45px; }
+    .role-card { background: #fff; border-radius: 29px; box-shadow: 0 6px 22px rgba(60,180,190,0.12); padding: 38px 30px 26px 30px; display: flex; flex-direction: column; align-items: center; width: 175px; min-height: 205px; transition: box-shadow 0.2s, transform 0.19s; cursor:pointer; animation: fadeIn 1s;}
+    .role-card:hover { box-shadow: 0 10px 34px #b1f1f7; transform: translateY(-7px) scale(1.025);}
+    .role-icon { font-size: 68px; margin-bottom: 13px; animation: popIn 0.8s;}
+    @keyframes popIn { 0% { opacity:0; transform:scale(0.7);} 70% { opacity:1; transform:scale(1.13);} 100% { opacity:1; transform:scale(1);}}
+    .role-title { font-size: 22px; color: #1b84bb; font-weight: bold; margin-bottom: 12px; }
+    .role-btn { background: linear-gradient(90deg,#00e0b2 0%,#1e96fc 100%); color: #fff; border: none; border-radius: 17px; padding: 10px 28px; font-size: 18px; margin: 9px auto 0 auto; display: block; cursor: pointer; font-weight: bold; transition: background 0.19s;}
+    .role-btn:hover { background: linear-gradient(90deg,#1e96fc 0%,#00e0b2 100%);}
+    .main-card h2 { font-size: 36px; color: #1d5fa7; font-weight:bold; margin:0 0 11px 0;text-align:center;letter-spacing:1px;}
+    .avatar-teacher  { background: #e3f3ff; border-radius: 50%; padding: 16px 18px 10px 18px;}
+    .avatar-parent   { background: #ffe7ec; border-radius: 50%; padding: 16px 18px 10px 18px;}
+    .avatar-student  { background: #d6fff4; border-radius: 50%; padding: 16px 18px 10px 18px;}
+    .avatar-admin    { background: #fffdc4; border-radius: 50%; padding: 16px 18px 10px 18px;}
+    .centered-parent-card { align-items:center; justify-content:center; display:flex; flex-direction:column;}
+    .back-btn { background: #e0f7fa; color: #007d91; font-weight: bold; border: none; border-radius: 19px; padding: 12px 34px; font-size: 17px; margin: 20px auto; display: block; cursor: pointer; box-shadow: 0 2px 8px rgba(30,200,180,0.08); transition: background 0.2s;}
+    .back-btn:hover { background: #b2ebf2; }
+    /* teacher panel extras */
+    .tab-btns { display: flex; gap: 14px; justify-content: center; margin-bottom: 18px; }
+    .tab-btn { padding: 10px 20px; border-radius: 22px; background: #e6faf5; color: #217676; font-weight: bold; border: none; font-size: 17px; cursor: pointer; }
+    .tab-btn.active { background: #c6ffe7; color: #1976d2;}
+    .questions-bank-title { text-align: center; font-size: 19px; color: #186fa7; font-weight: 600; margin-bottom: 6px; }
+    .questions-bank { background: #e6fafd; border-radius: 12px; max-height: 145px; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 7px; border:1px solid #ccf0fa; width: 340px; margin:0 auto;}
+    .q-input { border:1.2px solid #b8e0fa; border-radius: 10px; padding: 7px 13px; font-size:16px; }
+    .chosen-list { padding: 0 5px; margin: 0 0 15px 0; list-style-type: disc; text-align: right;}
+    .chosen-list li { font-size: 16px; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;}
+    .delete-btn { border:none; background:transparent; font-size:17px; cursor:pointer; color: #c32c2c;}
+    .success-anim { background: #e6faf2; color: #18a95a; border-radius: 11px; font-weight: bold; padding: 12px 10px 9px 10px; text-align:center; font-size: 19px; margin-bottom: 8px;}
+    .barcode-img { margin: 0 auto 0 auto; display: block;}
+    .copy-link { color: #1976d2; font-size: 15px; margin-right: 12px; cursor: pointer; text-decoration: underline; transition: color 0.2s;}
+    .copy-link:hover { color: #24c1c8;}
+    .error-msg { background: #fff5f5; color: #c32c2c; font-weight: 500; border-radius: 9px; padding: 7px 10px; margin: 7px 0 3px 0; font-size:16px;}
+    .chart-box-outer { display: flex; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;}
+    .chart-box-inner { display: flex; justify-content: center; align-items: center; width: 100%; }
+    .chart-box-inner canvas { display: block; margin: 0 auto; }
+    /* Dropdown style */
+    .dropdown { font-family: 'Varela Round', Arial, sans-serif; background: #fff; color: #222; font-size: 17px; border: 1.7px solid #c9e7f6; border-radius: 15px; padding: 11px 20px 11px 35px; margin-top: 4px; min-width: 185px; outline: none; box-shadow: 0 1px 9px #e7fafd66; transition: border 0.21s, box-shadow 0.21s; appearance: none; -webkit-appearance: none; direction: rtl; background-image: url("data:image/svg+xml,%3Csvg width='13' height='10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 2l4.5 4.5L11 2' stroke='%23699be1' stroke-width='2.1' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: left 12px center; cursor: pointer;}
+    .dropdown:focus, .dropdown:hover { border-color: #6fd6c8; box-shadow: 0 3px 14px #c5f4ef61;}
+    /* תלמיד בחירה */
+    .rate-btn.selected { background: #5ce6b3 !important; color: #fff; border:2.5px solid #11ca8f !important; }
+    .rate-btn:active { background: #bfffe3 !important; }
+    /* זיקוקים */
+    .firework { position: fixed; z-index: 999; pointer-events: none; left: 50%; top: 68%; transform: translate(-50%, -50%); width: 220px; height: 220px; animation: fw-pop 1.13s cubic-bezier(.5,.6,.7,1.1) forwards;}
+    @keyframes fw-pop { 0% { opacity:1; transform: scale(.5) translate(-50%, -50);} 85% { opacity:1; } 100% { opacity:0; transform: scale(1.6) translate(-50%, -50);}}
+	.legend-dot {display: inline-block; width: 13px; height: 13px; border-radius: 50%; margin-left: 5px;margin-bottom: -2px;}
+     .reco-modal {display: none;position: fixed;top: 0; left: 0;width: 100vw;height: 100vh;align-items: center;justify-content: center;z-index: 111;background: rgba(255,255,255,0.92);}
+     .reco-modal-box {background: #fff;border-radius: 17px;box-shadow: 0 3px 19px rgba(20,160,180,0.15);padding: 30px 44px;text-align: center;min-width: 240px;}
+     .close-reco {color: #1976d2;background: none;border: none;font-size: 18px;margin-top: 12px;cursor: pointer;}
+     .reco-btn {background: #d9f1f8; /* צבע רקע בהיר תכלת */border-radius: 20px;padding: 14px 26px;font-weight: 700;color: #139085; /* צבע טקסט ירוק-כחול */font-size: 18px;display: block; 
+     	margin: 20px auto;align-items: center;gap: 9px; /* רווח בין הטקסט לאייקון */cursor: pointer;border: none;box-shadow: 0 2px 10px rgba(19, 144, 133, 0.2);transition: background 0.3s ease;}
+     .reco-btn:hover {background: #ade5f1;}
+  </style>
+</head>
+<body>
+<script>
+ function showReco() {
+  let classIdx = +document.getElementById('clsDropdown').value;  // כיתה נבחרת
+  let cls = teacherClasses[classIdx];                            // שם הכיתה
+  let chosen = classQuestionnaires[cls] || [];                   // שאלות שנבחרו לכיתה
+  let idx = document.getElementById('resultQDropdown') ? +document.getElementById('resultQDropdown').value : 0; // שאלה נבחרת בטאב תוצאות
+  let q = chosen[idx];                                           // טקסט השאלה שנבחרה
+  let vals = (classAnswers[cls] && classAnswers[cls][q]) || [3,6,9,6,3];  // התוצאות של השאלה בכיתה
+
+  // חישובים בסיסיים לפיזור ממוצע וסכום התשובות
+  let total = vals.reduce((a,b) => a + b, 0);
+  let avg = vals.reduce((a,b,i) => a + b*(i+1), 0) / Math.max(1, total);
+
+  // הגדרת המלצה על בסיס תכנים ותוצאות
+  let reco = "";
+  if (q && q.includes("עומס") && vals[0] + vals[1] > total * 0.3) 
+    reco = "רבים חוו עומס – נסו להאט את הקצב ולשלב הפסקות קצרות.";
+  else if (q && q.includes("הבנת") && vals[0] + vals[1] > total * 0.25) 
+    reco = "שימו לב: תלמידים רבים לא הבינו מספיק – חיזרו על הנושא בגישה שונה.";
+  else if (q && q.includes("ריכוז") && avg < 3) 
+    reco = "רמת הריכוז נמוכה – נסו לשנות גיוון או קצב.";
+  else if (total && avg > 4) 
+    reco = "רוב הכיתה מרוצה – המשיכו כך!";
+  else 
+    reco = "אפשר לשלב דרכי הוראה נוספות, משחק, דיון או עבודה קבוצתית.";
+
+  // הצגת המלצה בתיבת המלצה + פתיחת המודאל
+  document.getElementById('systemRecoText').innerText = reco;
+  document.getElementById('systemRecoModal').style.display = "flex";
+}
+
+function hideReco() {
+  document.getElementById('systemRecoModal').style.display = "none";
+}
+
+// ========== דף הבית ==========
+function showHome() {
+  document.body.innerHTML = `
+    <div class="main-home" id="mainHome">
+      <h1 style="font-size:39px;color:#0b69c6;margin-bottom:9px;margin-top:25px;font-weight:bold;text-align:center;letter-spacing:1px;">ברוכים הבאים ל־FocusCheck</h1>
+      <div style="font-size:19px;color:#117890;text-align:center;">בחרו את סוג המשתמש לכניסה:</div>
+      <div class="main-roles">
+        <div class="role-card" onclick="loadStudentPage()">
+          <div class="avatar-student role-icon">👨🏼‍🎓</div>
+          <div class="role-title">תלמיד</div>
+          <button class="role-btn">כניסה</button>
+        </div>
+        <div class="role-card" onclick="loadParentPage()">
+          <div class="avatar-parent role-icon">👨‍👩‍👦</div>
+          <div class="role-title">הורה</div>
+          <button class="role-btn">כניסה</button>
+        </div>
+        <div class="role-card" onclick="loadTeacherPage()">
+          <div class="avatar-teacher role-icon">👩‍🏫</div>
+          <div class="role-title">מורה</div>
+          <button class="role-btn">כניסה</button>
+        </div>
+        <div class="role-card" onclick="loadAdminPage()">
+          <div class="avatar-admin role-icon">👨🏼‍💼</div>
+          <div class="role-title">מנהל</div>
+          <button class="role-btn">כניסה</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ========== עמוד תלמיד ==========
+function loadStudentPage() {
+  document.body.innerHTML = `
+    <div class="main-card">
+      <div class="avatar-student role-icon" style="margin-bottom:14px;">👨🏼‍🎓</div>
+      <h2>שלום, תלמיד/ה!</h2>
+      <div style="background:#e7faf3;color:#1ca67e;border-radius:13px;padding:12px 20px;margin:0 0 15px 0;font-size:18px;text-align:center;max-width:400px;">
+        השאלון אנונימי ורק אתה חשוף לתשובות שלך.<br> אנא חשוב בכנות, אין תשובות נכונות או שגויות.
+      </div>
+      <div id='errorMsg' style="display:none;background:#ffe7e7;color:#c32c2c;border-radius:10px;padding:10px 16px;margin:10px 0;font-size:17px;font-weight:500;text-align:center;max-width:350px;">
+        יש להשיב על כל השאלות לפני שליחה!
+      </div>
+      <div style="margin-bottom:10px;font-size:16px;">ענה על השאלות:</div>
+      <div id='studentQuestions' style='width:100%;'></div>
+      <button class='role-btn' style='margin-top:20px;' onclick='submitStudent()'>שלח</button>
+      <button class='back-btn' onclick='showHome()'>חזרה לדף הבית</button>
+    </div>
+  `;
+  const questions = [
+    {id:1, text:"האם הרגשת עומס בשיעור?", scale:["😫","🙁","😐","🙂","😄"]},
+    {id:2, text:"עד כמה הבנת את הנושא האחרון?", scale:["😟","😐","🙂","😃","🤓"]},
+    {id:3, text:"רמת הריכוז בשיעור?", scale:["🥱","😐","🙂","😀","🚀"]}
+  ];
+  let html = '';
+  questions.forEach(q => {
+    html += `<div style='margin:20px 0;text-align:center;font-weight:bold;'>${q.text}</div>
+    <div style='display:flex;justify-content:center;gap:15px;'>`;
+    q.scale.forEach((s,i) => {
+      html += `<button class='rate-btn' onclick='selectRate(${q.id},${i+1},this)' style='border:2px solid #aeeeee;border-radius:50%;width:54px;height:54px;font-size:32px;background:#fff;cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;margin-bottom:0;'>
+      ${s}
+      </button>`;
+    });
+    html += `</div>`;
+  });
+  setTimeout(()=>{ document.getElementById('studentQuestions').innerHTML = html; },0);
+  window.selectedRates = {};
+}
+function selectRate(qid,val,el) {
+  window.selectedRates = window.selectedRates || {};
+  window.selectedRates[qid] = val;
+  [...el.parentNode.children].forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function submitStudent() {
+  if (Object.keys(window.selectedRates).length < 3) {
+    document.getElementById('errorMsg').style.display = 'block';
+    return;
+  }
+  // מופיע קודם המסך, ואז מופיעים זיקוקים:
+  document.body.innerHTML = `<div class="main-card" style="text-align:center;">
+      <div class="avatar-student role-icon">👨🏼‍🎓</div>
+      <h2 style="color:#18a95a;margin-bottom:25px;">תודה על השיתוף!</h2>
+      <button class='back-btn' onclick='showHome()' style='margin-top:18px;'>חזרה לדף הבית</button>
+    </div>`;
+  setTimeout(triggerFireworks, 200);
+}
+
+// ====== זיקוקים (גם לתלמיד וגם למורה) ======
+function triggerFireworks() {
+  let fw = document.createElement("canvas");
+  fw.width = 220; fw.height = 220;
+  fw.className = "firework";
+  document.body.appendChild(fw);
+  let ctx = fw.getContext("2d");
+  let colors = ["#26e89d","#23aaff","#ffe978","#ff6e6e"];
+  let points = [];
+  let N = 24;
+  for(let i=0;i<N;i++) {
+    let angle = 2*Math.PI*i/N, r = 85+Math.random()*25, col = colors[i%colors.length];
+    points.push({x:110+Math.cos(angle)*r, y:110+Math.sin(angle)*r, c:col});
+  }
+  let t=0, max=21;
+  (function animate(){
+    ctx.clearRect(0,0,220,220);
+    for(let p of points){
+      ctx.beginPath();
+      ctx.arc(p.x+(Math.random()-0.5)*2*t, p.y+(Math.random()-0.5)*2*t, 9-t*0.38, 0, 2*Math.PI);
+      ctx.fillStyle = p.c; ctx.globalAlpha = 1-t/max;
+      ctx.fill();
+    }
+    if(++t<max) requestAnimationFrame(animate);
+    else setTimeout(()=>fw.remove(),280);
+  })();
+}
+
+// ========== עמוד הורה ==========
+function loadParentPage() {
+  const teachers = [
+    { name: "איילה ליבוביץ'", questions: [{ id: 1, text: "האם הרגשת עומס בשיעור?", data: [3, 2, 2, 3, 4, 4, 4, 5, 5, 5] }, { id: 2, text: "עד כמה הבנת את הנושא האחרון?", data: [2, 2, 2, 3, 3, 4, 4, 5, 5, 5] }] },
+    { name: "נעמה חסון", questions: [{ id: 3, text: "רמת הריכוז בשיעור?", data: [3, 3, 3, 3, 4, 4, 4, 5, 5, 5] }, { id: 2, text: "עד כמה הבנת את הנושא האחרון?", data: [2, 3, 3, 3, 4, 4, 4, 4, 5, 5] }] }
+  ];
+  const months = ["ספט'", "אוק'", "נוב'", "דצמ'", "ינו'", "פבר'", "מרץ", "אפר'", "מאי", "יוני"];
+  document.body.innerHTML = `
+    <div class='main-card centered-parent-card'>
+      <div class="avatar-parent role-icon" style="margin-bottom:14px;">👨‍👩‍👦</div>
+      <h2>שלום, הורה!</h2>
+      <div style="width:100%;display:flex;flex-direction:column;align-items:center;">
+        <div style="margin-bottom:9px;">
+          <label style="font-size:17px;font-weight:500;">בחר מורה:</label>
+          <select id="teacherSel" class="dropdown"></select>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="font-size:17px;font-weight:500;">בחר שאלה:</label>
+          <select id="questionSel" class="dropdown"></select>
+        </div>
+      </div>
+      <div style="margin:16px 0 2px 0;width:100%;">
+        <div style="font-size:22px;color:#14938b;font-weight:700;text-align:center;margin-bottom:6px;text-decoration:underline;">ממוצע כיתתי לאורך חודשים:</div>
+      </div>
+      <canvas id="parentChart" width="400" height="200" style="display:block;margin:0 auto 0 auto;"></canvas>
+      <button class="back-btn" onclick="showHome()" style="margin-top:20px;">חזרה לדף הבית</button>
+    </div>
+  `;
+  const teacherSel = document.getElementById("teacherSel");
+  const questionSel = document.getElementById("questionSel");
+  teachers.forEach((t, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = t.name;
+    teacherSel.appendChild(opt);
+  });
+  teacherSel.onchange = fillQuestions;
+  questionSel.onchange = updateChart;
+  fillQuestions();
+  function fillQuestions() {
+    const t = teachers[teacherSel.value];
+    questionSel.innerHTML = "";
+    t.questions.forEach((q, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = q.text;
+      questionSel.appendChild(opt);
+    });
+    updateChart();
+  }
+  function updateChart() {
+    const t = teachers[teacherSel.value];
+    const q = t.questions[questionSel.value];
+    drawBarChart("parentChart", q.data, months);
+  }
+  function drawBarChart(canvasId, vals, cats) {
+    const c = document.getElementById(canvasId);
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+    const n = vals.length, maxVal = 5, barW = 30, gap = 12, baseY = 160;
+    const totalW = n * barW + (n - 1) * gap;
+    const startX = Math.round((c.width - totalW) / 2);
+    ctx.strokeStyle = "#b8e0f7";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(startX - 15, 20);
+    ctx.lineTo(startX - 15, baseY);
+    ctx.lineTo(startX + totalW + 15, baseY);
+    ctx.stroke();
+    vals.forEach((val, i) => {
+      const x = startX + i * (barW + gap);
+      const y = baseY - (val / maxVal) * 110;
+      const clr = val <= 2.2 ? "#ff6e6e" : val <= 3.5 ? "#ffe978" : "#5ce6b3";
+      ctx.fillStyle = clr;
+      ctx.fillRect(x, y, barW, baseY - y);
+      ctx.font = "bold 17px Arial";
+      ctx.fillStyle = clr == '#ffe978' ? "#e3a31c" : clr == '#ff6e6e' ? "#c32c2c" : "#18a95a";
+      ctx.textAlign = "center";
+      ctx.fillText(val, x + barW / 2, y - 8);
+      ctx.font = "bold 16px Arial";
+      ctx.fillStyle = "#2a9dd6";
+      ctx.fillText(cats[i], x + barW / 2, baseY + 22);
+    });
+  }
+}
+
+// ========== עמוד מורה ==========
+const teacherClasses = ["י\"א 1", "י\"א 2", "י\"א 3"];
+let classQuestionnaires = {};
+let classAnswers = {};
+let selectedResultQ = {};
+window.teacherTab = 0;
+
+function loadTeacherPage() {
+  const questionsBank = [
+    "עד כמה הרגשת שהחומר היה ברור בשיעור?",
+    "כמה עניין הרגשת בנושא השיעור?",
+    "האם הרגשת עומס בשיעור?",
+    "עד כמה הבנת את הנושא האחרון?",
+    "רמת הריכוז שלך בשיעור?",
+    "כמה הרגשת בנוח לשאול שאלות?",
+    "האם היה צריך קצב איטי יותר?",
+    "האם היה קשה לעקוב אחרי השיעור?",
+    "האם הרגשת שהמשימות מאתגרות?",
+    "האם הרגשת שיתוף פעולה בכיתה?"
+  ];
+  renderTeacherScreen();
+  function renderTeacherScreen(classIdxForce) {
+    let classIdx = (typeof classIdxForce === 'number') ? classIdxForce : (document.getElementById('clsDropdown') ? +document.getElementById('clsDropdown').value : 0);
+    document.body.innerHTML = `
+      <div class="main-card">
+        <div class="avatar-teacher role-icon" style="margin-bottom:14px;">👩‍🏫</div>
+        <h2>שלום, מורה!</h2>
+        <div style="width:100%;max-width:340px;margin:0 auto 14px auto">
+          <label style="font-size:16px;font-weight:500;color:#217676;">בחר כיתה:</label>
+          <select id="clsDropdown" class="dropdown">
+            ${teacherClasses.map((c,i)=>`<option value="${i}"${i===classIdx?' selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
+        <div class="tab-btns">
+          <button class="tab-btn${window.teacherTab===0?' active':''}" id="quizTabBtn">יצירת שאלון ושליחה</button>
+          <button class="tab-btn${window.teacherTab===1?' active':''}" id="resultTabBtn">צפייה בתשובות וגרפים</button>
+        </div>
+        <div id="teacherTabContent"></div>
+        <button class='back-btn' onclick='showHome()' style='margin-top:30px;'>חזרה לדף הבית</button>
+      </div>
+    `;
+    document.getElementById("clsDropdown").onchange = function() {
+      let classIdx = +this.value;
+      selectedResultQ[teacherClasses[classIdx]] = 0;
+      renderTeacherScreen(classIdx);
+    };
+    document.getElementById("quizTabBtn").onclick = function() {
+      window.teacherTab = 0;
+      renderTeacherScreen();
+    };
+    document.getElementById("resultTabBtn").onclick = function() {
+      window.teacherTab = 1;
+      renderTeacherScreen();
+    };
+    if (window.teacherTab===0) teacherQuizBuilder(classIdx);
+    else teacherResultsTab(classIdx);
+    function teacherQuizBuilder(classIdx) {
+      let cls = teacherClasses[classIdx];
+      let chosen = classQuestionnaires[cls] || [];
+      let quizLink = 'https://focuscheck-demo.link/response/' + Math.floor(Math.random() * 90000);
+      let html = `
+        <div class="questions-bank-title">רשימת שאלות מומלצות</div>
+        <div class="questions-bank">
+          ${questionsBank.map(q =>
+            `<label style="font-size:15px;">
+              <input type="checkbox" onchange="toggleBankQ(this.checked, \`${q.replace(/"/g,'\\"')}\`)"
+                ${chosen.includes(q) ? 'checked' : ''} /> ${q}
+            </label>`).join('')}
+        </div>
+        <div style="margin:10px 0 8px 0;text-align:center;font-size:16px;">
+          או הוסף שאלה חופשית (סקלה 1–5 בלבד):
+        </div>
+        <div style="display:flex;justify-content:center;align-items:center;gap:8px;">
+          <input id="freeTextQ" class="q-input" style="width:58%;" placeholder="הקלד כאן..." maxlength="72"/>
+          <button class="role-btn" style="padding:5px 17px;font-size:15px;display:inline-block" onclick="addFreeQ()">הוסף</button>
+        </div>
+        <div style="margin-top:15px;margin-bottom:3px;text-align:center;font-weight:500;color:#217676;">רשימת השאלות שלי:</div>
+        <ul class="chosen-list" id="chosenList">${chosen.length === 0 ? '<li style="color:#aaa;font-size:15px;">(לא נבחרו שאלות)</li>' : chosen.map(q=>`<li>${q} <button class="delete-btn" onclick="delQ(\`${q.replace(/"/g,'\\"')}\`)">🗑</button></li>`).join('')}</ul>
+        <button class="role-btn" onclick="sendQuiz()">שלח שאלון וברקוד</button>
+        <div id="sendSuccess"></div>
+        <div id="errorMsg"></div>
+      `;
+      document.getElementById('teacherTabContent').innerHTML = html;
+      window.toggleBankQ = function(checked, q) {
+        let classIdx = +document.getElementById('clsDropdown').value;
+        let cls = teacherClasses[classIdx];
+        classQuestionnaires[cls] = classQuestionnaires[cls] || [];
+        if (checked && !classQuestionnaires[cls].includes(q)) classQuestionnaires[cls].push(q);
+        if (!checked) classQuestionnaires[cls] = classQuestionnaires[cls].filter(x=>x!==q);
+        teacherQuizBuilder(classIdx);
+      };
+      window.addFreeQ = function() {
+        let val = document.getElementById('freeTextQ').value.trim();
+        let classIdx = +document.getElementById('clsDropdown').value;
+        let cls = teacherClasses[classIdx];
+        if (!val) return;
+        if (questionsBank.includes(val) || (classQuestionnaires[cls]||[]).includes(val))
+          { alert("שאלה זו כבר קיימת."); return; }
+        classQuestionnaires[cls] = classQuestionnaires[cls] || [];
+        classQuestionnaires[cls].push(val);
+        document.getElementById('freeTextQ').value = '';
+        teacherQuizBuilder(classIdx);
+      };
+      window.delQ = function(q) {
+        let classIdx = +document.getElementById('clsDropdown').value;
+        let cls = teacherClasses[classIdx];
+        classQuestionnaires[cls] = classQuestionnaires[cls].filter(x=>x!==q);
+        teacherQuizBuilder(classIdx);
+      };
+window.sendQuiz = function() {
+  let classIdx = +document.getElementById('clsDropdown').value;
+  let cls = teacherClasses[classIdx];
+  if (!(classQuestionnaires[cls] && classQuestionnaires[cls].length)) {
+    document.getElementById('errorMsg').innerHTML = '<div class="error-msg">יש לבחור לפחות שאלה אחת!</div>';
+    return;
+  }
+  classAnswers[cls] = {};
+  classQuestionnaires[cls].forEach(q => {
+    let res = [];
+    for(let i=0;i<5;i++) res[i] = Math.floor(Math.random()*10);
+    classAnswers[cls][q] = res;
+  });
+  document.getElementById('errorMsg').innerHTML = '';
+
+  let quizLink = 'https://focuscheck-demo.link/response/' + Math.floor(Math.random() * 90000);
+
+  document.getElementById('sendSuccess').innerHTML =
+    `<div class="success-anim">🎉 השאלון נשלח בהצלחה!<br>אפשר לסרוק את הברקוד:</div>
+     <div><img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(quizLink)}" width="140" height="140" class="barcode-img" alt="ברקוד"/></div>
+     <div style="margin:7px 0;text-align:center;font-size:17px;color:#247;">או</div>
+     <div style="text-align:center;">
+        <input type="text" readonly value="${quizLink}" style="font-size:16px;border-radius:8px;border:1px solid #c7e2fb;padding:6px 10px;width:78%;margin-bottom:5px;text-align:center;background:#f9fcff;">
+        <span class="copy-link" onclick="navigator.clipboard.writeText('${quizLink}');this.innerHTML='הועתק!'">העתק קישור</span>
+     </div>`;
+
+  // גלילה חלקה לאזור הברקוד והלינק
+  document.getElementById('sendSuccess').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  triggerFireworks();
+}
+
+    }
+function teacherResultsTab(classIdx) {
+  let cls = teacherClasses[classIdx];
+  let chosen = classQuestionnaires[cls] || [];
+  let hasSurvey = classAnswers[cls] && Object.keys(classAnswers[cls]).length > 0;
+  if (!hasSurvey) {
+    document.getElementById('teacherTabContent').innerHTML = `<div style="color:#c32c2c;text-align:center;font-size:18px;margin-top:26px">טרם נשלח שאלון לכיתה זו</div>`;
+    return;
+  }
+  if (!(cls in selectedResultQ) || selectedResultQ[cls] >= chosen.length) selectedResultQ[cls] = 0;
+
+  let html = `
+    <div style="margin-bottom:13px;text-align:center;">
+      <label style="font-size:17px;font-weight:500;margin-left:8px;">בחר שאלה:</label>
+      <select id="resultQDropdown" class="dropdown" style="width:70%;">
+        ${chosen.map((q,i) => `<option value="${i}"${i === selectedResultQ[cls] ? ' selected' : ''}>${q}</option>`).join('')}
+      </select>
+    </div>
+    <div style="margin-top: 15px; text-align: center;">
+      <canvas id="resultChart" width="400" height="195" style="border:1px solid #ccc; border-radius:12px;"></canvas>
+    </div>
+    <button id="showRecoBtn" class="reco-btn" onclick="showReco()">
+      המלצת מערכת להמשך <span>💡</span>
+    </button>
+    <div id="systemRecoModal" class="reco-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; align-items:center; justify-content:center; z-index:111; background: rgba(255,255,255,0.92);">
+      <div class="reco-modal-box" style="background:#fff; border-radius:17px; box-shadow:0 3px 19px rgba(20,160,180,0.15); padding:30px 44px; text-align:center; min-width:240px;">
+        <h4 style="color:#1976d2; font-size: 22px; margin-bottom: 17px;">המלצת מערכת להמשך</h4>
+        <div id="systemRecoText" style="font-size:18px; margin:18px 0 5px 0;"></div>
+        <button class="close-reco" style="color:#1976d2; background:none; border:none; font-size:18px; margin-top:12px; cursor:pointer;" onclick="hideReco()">סגור</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('teacherTabContent').innerHTML = html;
+
+  setTimeout(() => {
+    let ctx = document.getElementById('resultChart').getContext('2d');
+    ctx.clearRect(0, 0, 400, 195);
+    let q = chosen[selectedResultQ[cls]];
+    let vals = (classAnswers[cls] && classAnswers[cls][q]) || [3, 6, 9, 6, 3];
+    let scale = [1, 2, 3, 4, 5];
+    let max = Math.max(...vals, 1);
+    let barW = 52, gap = 18, baseY = 160, startX = 35;
+    for (let i = 0; i < 5; i++) {
+      let x = startX + i * (barW + gap), y = baseY - (vals[i] / max) * 110;
+      let clr = i < 1 ? "#ff6e6e" : i < 3 ? "#ffe978" : "#5ce6b3";
+      ctx.fillStyle = clr;
+      ctx.fillRect(x, y, barW, baseY - y);
+      ctx.font = "bold 18px Arial";
+      ctx.fillStyle = clr == '#ffe978' ? "#e3a31c" : (clr == '#ff6e6e' ? "#c32c2c" : "#18a95a");
+      ctx.textAlign = "center";
+      ctx.fillText(vals[i], x + barW / 2, y - 9);
+      ctx.font = "bold 16px Arial";
+      ctx.fillStyle = "#1989d2";
+      ctx.fillText(scale[i], x + barW / 2, baseY + 22);
+    }
+
+    document.getElementById("resultQDropdown").onchange = function () {
+      selectedResultQ[cls] = +this.value;
+      teacherResultsTab(classIdx);
+    };
+  }, 10);
+}
+
+	
+  }
+}
+
+// ========== עמוד מנהל ==========
+function loadAdminPage() {
+  // צבעים קבועים לגרפים
+  const barColors = ["#43e3a3", "#ffaf44", "#649cf7", "#ff6788", "#40c7eb", "#faabbe"];
+  // שכבות, כיתות, שאלות דמו (כמו קודם)
+  const layers = [
+    { id: "y10", label: "י'" },
+    { id: "y11", label: "י״א" },
+    { id: "y12", label: "י״ב" }
+  ];
+  const classesByLayer = {
+    "y10": ["י' 1", "י' 2", "י' 3", "י' 4", "י' 5"],
+    "y11": ["י״א 1", "י״א 2", "י״א 3", "י״א 4", "י״א 5"],
+    "y12": ["י״ב 1", "י״ב 2", "י״ב 3", "י״ב 4", "י״ב 5"]
+  };
+  const questionsBank = [
+    "עד כמה הרגשת שהחומר היה ברור בשיעור?",
+    "כמה עניין הרגשת בנושא השיעור?",
+    "האם הרגשת עומס בשיעור?",
+    "עד כמה הבנת את הנושא האחרון?",
+    "רמת הריכוז שלך בשיעור?",
+    "כמה הרגשת בנוח לשאול שאלות?",
+    "האם היה צריך קצב איטי יותר?",
+    "האם היה קשה לעקוב אחרי השיעור?",
+    "האם הרגשת שהמשימות מאתגרות?",
+    "האם הרגשת שיתוף פעולה בכיתה?"
+  ];
+  // יצירת דמו נתונים (אם לא שמור ב-state)
+  if (!window._demoData) {
+    window._demoData = {};
+    for (let l of layers) {
+      window._demoData[l.id] = {};
+      for (let c of classesByLayer[l.id]) {
+        window._demoData[l.id][c] = {};
+        for (let q of questionsBank) {
+          let arr = [];
+          for (let i = 0; i < 5; i++) arr.push(3 + Math.floor(Math.random() * 9));
+          window._demoData[l.id][c][q] = arr;
+        }
+      }
+    }
+  }
+  const demoData = window._demoData;
+
+  // state (globally, so לא יתאפסו בלחיצה)
+  if (!window._adminTab) window._adminTab = 0;
+  if (!window._singleLayerId) window._singleLayerId = layers[0].id;
+  if (!window._singleClass) window._singleClass = classesByLayer[layers[0].id][0];
+  if (!window._singleQuestion) window._singleQuestion = questionsBank[0];
+  if (!window._compareLayerId) window._compareLayerId = layers[0].id;
+  if (!window._selectedClasses) window._selectedClasses = [];
+  if (!window._compareQuestion) window._compareQuestion = questionsBank[0];
+  if (!window._layerChartLayerId) window._layerChartLayerId = layers[0].id;
+  if (!window._layerChartQuestion) window._layerChartQuestion = questionsBank[0];
+  if (!window._selectedLayers) window._selectedLayers = [];
+  if (!window._compareLayersQuestion) window._compareLayersQuestion = questionsBank[0];
+
+  // render ראשי
+  document.body.innerHTML = `
+    <div class="main-card" style="max-width:540px;">
+      <div class="avatar-admin role-icon" style="margin-bottom:14px;">👨🏼‍💼</div>
+      <h2>שלום, מנהל!</h2>
+      <div class="tab-btns" style="margin-bottom:18px;">
+        <button class="tab-btn${window._adminTab===0?' active':''}" onclick="_adminTab=0;loadAdminPage()">גרף כיתתי</button>
+        <button class="tab-btn${window._adminTab===1?' active':''}" onclick="_adminTab=1;loadAdminPage()">השוואה כיתתית</button>
+        <button class="tab-btn${window._adminTab===2?' active':''}" onclick="_adminTab=2;loadAdminPage()">גרף שכבה</button>
+        <button class="tab-btn${window._adminTab===3?' active':''}" onclick="_adminTab=3;loadAdminPage()">השוואה שכבתית</button>
+      </div>
+      <div id="adminTabContent"></div>
+      <button class="back-btn" onclick="showHome()" style="margin-top:32px;">חזרה לדף הבית</button>
+    </div>
+  `;
+  // טאב 0 - גרף כיתתי
+  if (window._adminTab === 0) {
+    document.getElementById('adminTabContent').innerHTML = `
+      <div style="margin-bottom:8px;display:flex;gap:10px;justify-content:center;align-items:center;">
+        <label style="font-size:16px;font-weight:500;">בחר שכבה:</label>
+        <select class="dropdown" style="min-width:90px" id="singleLayerSel"></select>
+        <label style="font-size:16px;font-weight:500;">בחר כיתה:</label>
+        <select class="dropdown" style="min-width:90px" id="singleClassSel"></select>
+      </div>
+      <div style="margin:0 0 10px 0;text-align:center;">
+        <label style="font-size:16px;font-weight:500;">בחר שאלה:</label>
+        <select class="dropdown" style="width:75%;" id="singleQSel"></select>
+      </div>
+      <div class="section-title" id="singleQTitle"></div>
+      <div class="chart-box-outer"><div class="chart-box-inner"><canvas id="singleChart" width="400" height="185"></canvas></div></div>
+      <div style="text-align:center;color:#888;font-size:13px;margin-top:4px;">* נתוני דמו – להמחשה בלבד</div>
+    `;
+    // רנדר דרופדאונים
+    document.getElementById('singleLayerSel').innerHTML =
+      layers.map(l=>`<option value="${l.id}"${l.id===window._singleLayerId?' selected':''}>${l.label}</option>`).join('');
+    document.getElementById('singleClassSel').innerHTML =
+      classesByLayer[window._singleLayerId].map(c=>`<option${c===window._singleClass?' selected':''}>${c}</option>`).join('');
+    document.getElementById('singleQSel').innerHTML =
+      questionsBank.map(q=>`<option${q===window._singleQuestion?' selected':''}>${q}</option>`).join('');
+    document.getElementById('singleQTitle').innerText = window._singleQuestion;
+
+    document.getElementById('singleLayerSel').onchange = function(){
+      window._singleLayerId = this.value; window._singleClass = classesByLayer[window._singleLayerId][0];
+      loadAdminPage();
+    };
+    document.getElementById('singleClassSel').onchange = function(){
+      window._singleClass = this.value;
+      loadAdminPage();
+    };
+    document.getElementById('singleQSel').onchange = function(){
+      window._singleQuestion = this.value;
+      loadAdminPage();
+    };
+
+    setTimeout(()=>{
+      let ctx = document.getElementById('singleChart').getContext('2d');
+      ctx.clearRect(0,0,400,185);
+      let vals = demoData[window._singleLayerId][window._singleClass][window._singleQuestion];
+      let scale = [1,2,3,4,5];
+      let max = Math.max(...vals, 1);
+      let barW = 48, gap = 17, baseY = 150, startX = 35;
+      for(let i=0;i<5;i++) {
+        let x = startX + i*(barW+gap), y = baseY - (vals[i]/max)*95;
+        let clr = i<1 ? "#ff6e6e" : i<3 ? "#ffe978" : "#5ce6b3";
+        ctx.fillStyle = clr;
+        ctx.fillRect(x, y, barW, baseY-y);
+        ctx.font = "bold 17px Arial";
+        ctx.fillStyle = clr=='#ffe978'?"#e3a31c":(clr=="#ff6e6e"?"#c32c2c":"#18a95a");
+        ctx.textAlign = "center";
+        ctx.fillText(vals[i], x+barW/2, y-9);
+        ctx.font = "bold 16px Arial";
+        ctx.fillStyle = "#1989d2";
+        ctx.fillText(scale[i], x+barW/2, baseY+22);
+      }
+    }, 10);
+  }
+  // טאב 1 - השוואה כיתתית
+  else if (window._adminTab === 1) {
+    document.getElementById('adminTabContent').innerHTML = `
+      <div style="margin-bottom:8px;display:flex;gap:10px;justify-content:center;align-items:center;">
+        <label style="font-size:17px;font-weight:500;">בחר שכבה:</label>
+        <select class="dropdown" style="min-width:90px" id="compareClassesLayer"></select>
+        <label style="font-size:17px;font-weight:500;">בחר כיתות:</label>
+        <div class="multi-checks" id="multiChecksClasses"></div>
+      </div>
+      <div style="margin:0 0 10px 0;text-align:center;">
+        <label style="font-size:17px;font-weight:500;">בחר שאלה:</label>
+        <select class="dropdown" style="width:75%;" id="compareClassesQDropdown"></select>
+      </div>
+      <div class="section-title" id="compareClassesQTitle"></div>
+      <div class="chart-box-outer">
+        <div class="chart-box-inner" id="chartInnerWrap">
+          <canvas id="compareClassesChart" width="400" height="185"></canvas>
+          <div class="empty-msg" id="emptyMsg" style="display:none;">בחר כיתה להצגת גרף השוואה</div>
+        </div>
+      </div>
+      <div id="compareClassesLegend"></div>
+      <div style="text-align:center;color:#888;font-size:13px;margin-top:4px;">* נתוני דמו – להמחשה בלבד</div>
+    `;
+    document.getElementById('compareClassesLayer').innerHTML =
+      layers.map(l=>`<option value="${l.id}"${l.id===window._compareLayerId?' selected':''}>${l.label}</option>`).join('');
+    document.getElementById('compareClassesQDropdown').innerHTML =
+      questionsBank.map(q=>`<option${q===window._compareQuestion?' selected':''}>${q}</option>`).join('');
+    renderClassesCheckboxes();
+    document.getElementById('compareClassesQTitle').innerText = window._compareQuestion;
+
+    document.getElementById('compareClassesLayer').onchange = function() {
+      window._compareLayerId = this.value; window._selectedClasses = [];
+      loadAdminPage();
+    };
+    document.getElementById('compareClassesQDropdown').onchange = function () {
+      window._compareQuestion = this.value;
+      loadAdminPage();
+    };
+
+    function renderClassesCheckboxes() {
+      document.getElementById('multiChecksClasses').innerHTML =
+        classesByLayer[window._compareLayerId].map((c, i) =>
+          `<label>
+             <input type="checkbox" value="${c}" ${window._selectedClasses.includes(c)?'checked':''} onchange="onChangeCompareClassesChecks()">
+             <span>${c}</span>
+           </label>`
+        ).join('');
+    }
+    window.onChangeCompareClassesChecks = function() {
+      window._selectedClasses = [];
+      document.querySelectorAll('#multiChecksClasses input[type=checkbox]:checked').forEach(cb=>{
+        window._selectedClasses.push(cb.value);
+      });
+      drawCompareClassesChart();
+    };
+
+    function drawCompareClassesChart() {
+      let ctx = document.getElementById('compareClassesChart').getContext('2d');
+      ctx.clearRect(0, 0, 400, 185);
+      let nC = window._selectedClasses.length, scale = [1, 2, 3, 4, 5];
+      // LEGEND
+      document.getElementById('compareClassesLegend').innerHTML =
+        nC > 0
+        ? `<div style="margin:13px 0 7px 0;font-size:15px;text-align:center;">
+             <span style="font-weight:bold; color:#1d5fa7;">הסבר צבעים:</span>
+             ${window._selectedClasses.map((cid, i) =>
+               `<span class="legend-dot" style="background:${barColors[i % barColors.length]};margin-right:7px;vertical-align:middle;"></span> ${cid}`
+             ).join('  ')}
+           </div>`
+        : "";
+      document.getElementById('compareClassesQTitle').innerText = window._compareQuestion;
+      // הודעה אם אין בחירה
+      if (nC === 0) {
+        document.getElementById('emptyMsg').style.display = 'block';
+        return;
+      } else {
+        document.getElementById('emptyMsg').style.display = 'none';
+      }
+      let allClassesData = window._selectedClasses.map(classId =>
+        demoData[window._compareLayerId][classId][window._compareQuestion]
+      );
+      let barW = Math.floor(52 / (nC)), groupGap = 18, baseY = 150, startX = 35;
+      for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < nC; j++) {
+          let v = allClassesData[j][i];
+          let max = Math.max(...allClassesData.map(arr => arr[i]), 1);
+          let x = startX + i * (nC * barW + groupGap) + j * barW, y = baseY - (v / max) * 95;
+          ctx.fillStyle = barColors[j % barColors.length];
+          ctx.fillRect(x, y, barW, baseY - y);
+          ctx.font = "bold 15px Arial";
+          ctx.fillStyle = "#222";
+          ctx.textAlign = "center";
+          ctx.fillText(v, x + barW / 2, y - 7);
+        }
+        ctx.font = "bold 15px Arial";
+        ctx.fillStyle = "#1989d2";
+        ctx.fillText(scale[i], startX + i * (nC * barW + groupGap) + (barW * nC) / 2, baseY + 22);
+      }
+    }
+    drawCompareClassesChart();
+  }
+  // טאב 2 - גרף שכבה
+  else if (window._adminTab === 2) {
+    document.getElementById('adminTabContent').innerHTML = `
+      <div style="margin-bottom:8px;display:flex;gap:10px;justify-content:center;align-items:center;">
+        <label style="font-size:16px;font-weight:500;">בחר שכבה:</label>
+        <select class="dropdown" style="min-width:90px" id="layerChartLayer"></select>
+      </div>
+      <div style="margin:0 0 10px 0;text-align:center;">
+        <label style="font-size:16px;font-weight:500;">בחר שאלה:</label>
+        <select class="dropdown" style="width:75%;" id="layerChartQ"></select>
+      </div>
+      <div class="section-title" id="layerChartQTitle"></div>
+      <div class="chart-box-outer"><div class="chart-box-inner"><canvas id="layerChart" width="400" height="185"></canvas></div></div>
+      <div style="text-align:center;color:#888;font-size:13px;margin-top:4px;">* נתוני דמו – להמחשה בלבד</div>
+    `;
+    document.getElementById('layerChartLayer').innerHTML =
+      layers.map(l=>`<option value="${l.id}"${l.id===window._layerChartLayerId?' selected':''}>${l.label}</option>`).join('');
+    document.getElementById('layerChartQ').innerHTML =
+      questionsBank.map(q=>`<option${q===window._layerChartQuestion?' selected':''}>${q}</option>`).join('');
+    document.getElementById('layerChartQTitle').innerText = window._layerChartQuestion;
+
+    document.getElementById('layerChartLayer').onchange = function(){
+      window._layerChartLayerId = this.value;
+      loadAdminPage();
+    };
+    document.getElementById('layerChartQ').onchange = function(){
+      window._layerChartQuestion = this.value;
+      loadAdminPage();
+    };
+    setTimeout(()=>{
+      let valsAll = [0,0,0,0,0];
+      for(let c of classesByLayer[window._layerChartLayerId]){
+        let arr = demoData[window._layerChartLayerId][c][window._layerChartQuestion];
+        for(let i=0;i<5;i++) valsAll[i]+=arr[i];
+      }
+      let ctx = document.getElementById('layerChart').getContext('2d');
+      ctx.clearRect(0,0,400,185);
+      let scale = [1,2,3,4,5], max = Math.max(...valsAll, 1);
+      let barW = 48, gap = 17, baseY = 150, startX = 35;
+      for(let i=0;i<5;i++) {
+        let x = startX + i*(barW+gap), y = baseY - (valsAll[i]/max)*95;
+        let clr = i<1 ? "#ff6e6e" : i<3 ? "#ffe978" : "#5ce6b3";
+        ctx.fillStyle = clr;
+        ctx.fillRect(x, y, barW, baseY-y);
+        ctx.font = "bold 17px Arial";
+        ctx.fillStyle = clr=='#ffe978'?"#e3a31c":(clr=='#ff6e6e'?"#c32c2c":"#18a95a");
+        ctx.textAlign = "center";
+        ctx.fillText(valsAll[i], x+barW/2, y-9);
+        ctx.font = "bold 16px Arial";
+        ctx.fillStyle = "#1989d2";
+        ctx.fillText(scale[i], x+barW/2, baseY+22);
+      }
+    },10);
+  }
+  // טאב 3 - השוואה שכבתית
+  else if (window._adminTab === 3) {
+    document.getElementById('adminTabContent').innerHTML = `
+      <div style="margin-bottom:8px;display:flex;gap:10px;justify-content:center;align-items:center;">
+        <label style="font-size:17px;font-weight:500;">בחר שכבות:</label>
+        <div class="multi-checks" id="multiChecksLayers"></div>
+      </div>
+      <div style="margin:0 0 10px 0;text-align:center;">
+        <label style="font-size:17px;font-weight:500;">בחר שאלה:</label>
+        <select class="dropdown" style="width:72%;" id="compareLayersQDropdown"></select>
+      </div>
+      <div class="section-title" id="compareLayersQTitle"></div>
+      <div class="chart-box-outer"><div class="chart-box-inner"><canvas id="compareLayersChart" width="400" height="185"></canvas></div></div>
+      <div id="legendLayers"></div>
+      <div style="text-align:center;color:#888;font-size:13px;margin-top:4px;">* נתוני דמו – להמחשה בלבד</div>
+    `;
+    document.getElementById('multiChecksLayers').innerHTML =
+      layers.map(l =>
+        `<label>
+           <input type="checkbox" value="${l.id}" ${window._selectedLayers.includes(l.id) ? 'checked' : ''} onchange="onChangeLayersCompare()">
+           <span>${l.label}</span>
+         </label>`
+      ).join('');
+    document.getElementById('compareLayersQDropdown').innerHTML =
+      questionsBank.map(q =>
+        `<option${q === window._compareLayersQuestion ? ' selected' : ''}>${q}</option>`
+      ).join('');
+    document.getElementById('compareLayersQTitle').innerText = window._compareLayersQuestion;
+    document.getElementById('compareLayersQDropdown').onchange = function () {
+      window._compareLayersQuestion = this.value;
+      loadAdminPage();
+    };
+
+    window.onChangeLayersCompare = function () {
+      window._selectedLayers = [];
+      document.querySelectorAll('#multiChecksLayers input[type=checkbox]:checked').forEach(cb => {
+        window._selectedLayers.push(cb.value);
+      });
+      drawCompareLayersChart();
+    };
+    drawCompareLayersChart();
+    function drawCompareLayersChart() {
+      let ctx = document.getElementById('compareLayersChart').getContext('2d');
+      ctx.clearRect(0, 0, 400, 185);
+      let nL = window._selectedLayers.length, scale = [1, 2, 3, 4, 5];
+      // LEGEND
+      document.getElementById('legendLayers').innerHTML =
+        nL > 0
+        ? `<div style="margin:13px 0 7px 0;font-size:15px;text-align:center;">
+             <span style="font-weight:bold; color:#1d5fa7;">הסבר צבעים:</span>
+             ${window._selectedLayers.map((lid, i) => {
+               let layerObj = layers.find(l => l.id === lid);
+               let label = layerObj ? layerObj.label : lid;
+               return `<span class="legend-dot" style="background:${barColors[i % barColors.length]};margin-right:7px;vertical-align:middle;"></span> ${label}`;
+             }).join('  ')}
+           </div>`
+        : "";
+      document.getElementById('compareLayersQTitle').innerText = window._compareLayersQuestion;
+      if (nL === 0) return;
+      // סכום עמודות לכל שכבה
+      let allLayerData = window._selectedLayers.map(layerId => {
+        let sumArr = [0, 0, 0, 0, 0];
+        for (let c of classesByLayer[layerId]) {
+          let arr = demoData[layerId][c][window._compareLayersQuestion];
+          for (let k = 0; k < 5; k++) sumArr[k] += arr[k];
+        }
+        return sumArr;
+      });
+      let barW = Math.floor(52 / (nL)), groupGap = 18, baseY = 150, startX = 35;
+      for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < nL; j++) {
+          let valsAll = allLayerData[j];
+          let v = valsAll[i];
+          let max = Math.max(...allLayerData.map(arr => arr[i]), 1);
+          let x = startX + i * (nL * barW + groupGap) + j * barW, y = baseY - (v / max) * 95;
+          ctx.fillStyle = barColors[j % barColors.length];
+          ctx.fillRect(x, y, barW, baseY - y);
+          ctx.font = "bold 15px Arial";
+          ctx.fillStyle = "#222";
+          ctx.textAlign = "center";
+          ctx.fillText(v, x + barW / 2, y - 7);
+        }
+        ctx.font = "bold 15px Arial";
+        ctx.fillStyle = "#1989d2";
+        ctx.fillText(scale[i], startX + i * (nL * barW + groupGap) + (barW * nL) / 2, baseY + 22);
+      }
+    }
+  }
+}
+
+
+showHome();
+</script>
+</body>
+</html>
